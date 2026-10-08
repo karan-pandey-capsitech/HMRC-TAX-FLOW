@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>HMRC_TAX_FLOW</RootNamespace>
     <UserSecretsId>hmrc-tax-flow-5d2c1f7b-3073-4c56-9b31-9bf59ec20d8e</UserSecretsId>
+    <DefaultItemExcludes>$(DefaultItemExcludes);Tests/**</DefaultItemExcludes>
   </PropertyGroup>
 
   <ItemGroup>

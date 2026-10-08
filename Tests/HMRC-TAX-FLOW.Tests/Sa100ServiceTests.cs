@@ -12,7 +12,12 @@ public sealed class Sa100ServiceTests
     [Fact]
     public async Task CreateAsync_CreatesDraftForAssignedPracticeUser()
     {
-        var client = new Client { PracticeUserId = Guid.NewGuid() };
+        var client = new Client
+        {
+            PracticeUserId = Guid.NewGuid(),
+            Name = "Example Client",
+            NationalInsuranceNumber = "AB123456C"
+        };
         var repository = new FakeSa100Repository();
         var service = CreateService(client, repository);
 
@@ -21,8 +26,6 @@ public sealed class Sa100ServiceTests
             {
                 ClientId = client.Id,
                 TaxYear = "2025-26",
-                ClientName = "Example Client",
-                NationalInsuranceNumber = "ab123456c",
                 EmploymentIncome = 25000,
                 EstimatedTax = 1200
             },
@@ -117,7 +120,9 @@ public sealed class Sa100ServiceTests
         }
 
         public Task<Sa100Return?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default) =>
-            Task.FromResult(Returns.FirstOrDefault(taxReturn => taxReturn.Id == id));
+            Task.FromResult(Returns.FirstOrDefault(taxReturn => taxReturn.Id == id) is { } taxReturn
+                ? Clone(taxReturn)
+                : null);
 
         public Task<IReadOnlyList<Sa100Return>> GetAllAsync(CancellationToken cancellationToken = default) =>
             Task.FromResult<IReadOnlyList<Sa100Return>>(Returns.ToArray());
@@ -139,8 +144,8 @@ public sealed class Sa100ServiceTests
                 return Task.FromResult<Sa100Return?>(null);
             }
 
-            Returns[index] = taxReturn;
-            return Task.FromResult<Sa100Return?>(taxReturn);
+            Returns[index] = Clone(taxReturn);
+            return Task.FromResult<Sa100Return?>(Clone(taxReturn));
         }
 
         public Task<long> CountByStatusAsync(
@@ -150,5 +155,17 @@ public sealed class Sa100ServiceTests
             Task.FromResult((long)Returns.Count(taxReturn =>
                 taxReturn.Status == status &&
                 (!practiceUserId.HasValue || taxReturn.PracticeUserId == practiceUserId.Value)));
+
+        private static Sa100Return Clone(Sa100Return value) => new()
+        {
+            Id = value.Id, ClientId = value.ClientId, PracticeUserId = value.PracticeUserId,
+            TaxYear = value.TaxYear, ClientName = value.ClientName,
+            NationalInsuranceNumber = value.NationalInsuranceNumber,
+            EmploymentIncome = value.EmploymentIncome, SelfEmploymentIncome = value.SelfEmploymentIncome,
+            OtherIncome = value.OtherIncome, TaxAlreadyPaid = value.TaxAlreadyPaid,
+            EstimatedTax = value.EstimatedTax, Status = value.Status, CreatedBy = value.CreatedBy,
+            CreatedAt = value.CreatedAt, UpdatedAt = value.UpdatedAt,
+            SubmittedBy = value.SubmittedBy, SubmittedAt = value.SubmittedAt
+        };
     }
 }

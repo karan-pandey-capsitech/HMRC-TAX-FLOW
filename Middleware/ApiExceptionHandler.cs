@@ -1,6 +1,7 @@
 using HMRC_TAX_FLOW.Application.Authentication;
 using HMRC_TAX_FLOW.Application.Clients;
 using HMRC_TAX_FLOW.Application.SA100;
+using HMRC_TAX_FLOW.Application.Users;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 
@@ -31,6 +32,14 @@ public sealed class ApiExceptionHandler(
                 StatusCodes.Status401Unauthorized,
                 "Authentication failed",
                 "The username or password is incorrect."),
+            ManagedUserNotFoundException => (
+                StatusCodes.Status404NotFound,
+                "User not found",
+                exception.Message),
+            InvalidManagedUserRoleException => (
+                StatusCodes.Status400BadRequest,
+                "Invalid role",
+                exception.Message),
             UsernameAlreadyExistsException => (
                 StatusCodes.Status409Conflict,
                 "Username already exists",
