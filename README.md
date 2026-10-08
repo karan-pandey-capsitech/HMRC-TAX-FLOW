@@ -1,6 +1,4 @@
-Yes — you want a **short 10-point README**, with **one code block** so you can directly use the copy button.
-
-```
+  
 # HMRC Tax Return Management System
 
 ## 1. Project Goal
