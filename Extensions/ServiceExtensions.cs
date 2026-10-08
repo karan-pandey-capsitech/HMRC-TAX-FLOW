@@ -1,4 +1,7 @@
 ﻿using HMRC_TAX_FLOW.Application.Authentication;
+using HMRC_TAX_FLOW.Application.Clients;
+using HMRC_TAX_FLOW.Application.Dashboard;
+using HMRC_TAX_FLOW.Application.SA100;
 using HMRC_TAX_FLOW.Application.Users;
 using HMRC_TAX_FLOW.Domain.Users;
 using HMRC_TAX_FLOW.Infrastructure.Authentication;
@@ -31,6 +34,11 @@ namespace HMRC_TAX_FLOW.Extensions
             services.AddSingleton<MongoDbContext>();
 
             services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IClientRepository, ClientRepository>();
+            services.AddScoped<ISa100Repository, Sa100Repository>();
+            services.AddScoped<IClientService, ClientService>();
+            services.AddScoped<ISa100Service, Sa100Service>();
+            services.AddScoped<IDashboardService, DashboardService>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IUserService, UserService>();
             services.AddSingleton<IJwtService, JwtService>();
