@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using HMRC_TAX_FLOW.Application.Abstractions.Security;
 using HMRC_TAX_FLOW.Domain.Users;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -60,10 +61,6 @@ public sealed class JwtService : IJwtService
             expires: expiresAt,
             signingCredentials: credentials);
 
-        return new TokenResult
-        {
-            Token = new JwtSecurityTokenHandler().WriteToken(token),
-            ExpiresAt = expiresAt
-        };
+        return new TokenResult(new JwtSecurityTokenHandler().WriteToken(token), expiresAt);
     }
 }

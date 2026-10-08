@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using HMRC_TAX_FLOW.Application.Validation;
 
 namespace HMRC_TAX_FLOW.Application.Clients.DTOs;
 
@@ -12,7 +13,7 @@ public sealed class CreateClientRequest
     [StringLength(20)]
     public string NationalInsuranceNumber { get; init; } = string.Empty;
 
-    [Required]
+    [NotEmptyGuid]
     public Guid PracticeUserId { get; init; }
 
     public Guid? DebitamUserId { get; init; }

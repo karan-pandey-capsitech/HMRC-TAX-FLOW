@@ -1,5 +1,5 @@
-﻿using HMRC_TAX_FLOW.Application.Authentication;
 using HMRC_TAX_FLOW.Domain.Users;
+using HMRC_TAX_FLOW.Application.Abstractions.Persistence;
 using HMRC_TAX_FLOW.Infrastructure.MongoDB;
 using MongoDB.Driver;
 
@@ -11,15 +11,16 @@ public sealed class UserRepository : IUserRepository
 
     public UserRepository(MongoDbContext context) => _context = context;
 
-    public async Task CreateAsync(User user, CancellationToken cancellationToken = default)
+    public async Task<bool> TryCreateAsync(User user, CancellationToken cancellationToken = default)
     {
         try
         {
             await _context.Users.InsertOneAsync(user, cancellationToken: cancellationToken);
+            return true;
         }
         catch (MongoWriteException exception) when (exception.WriteError?.Code == 11000)
         {
-            throw new UsernameAlreadyExistsException();
+            return false;
         }
     }
 

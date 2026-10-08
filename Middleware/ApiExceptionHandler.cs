@@ -56,6 +56,10 @@ public sealed class ApiExceptionHandler(
                 StatusCodes.Status409Conflict,
                 "SA100 workflow conflict",
                 exception.Message),
+            Sa100AlreadyExistsException => (
+                StatusCodes.Status409Conflict,
+                "SA100 return already exists",
+                exception.Message),
             InvalidClientAssignmentException => (
                 StatusCodes.Status400BadRequest,
                 "Invalid client assignment",

@@ -1,5 +1,6 @@
 using System.Text;
-using HMRC_TAX_FLOW.Extensions;
+using HMRC_TAX_FLOW.Application;
+using HMRC_TAX_FLOW.Infrastructure;
 using HMRC_TAX_FLOW.Infrastructure.MongoDB;
 using HMRC_TAX_FLOW.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -8,7 +9,8 @@ using Microsoft.IdentityModel.Tokens;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
-builder.Services.AddAuthServices(builder.Configuration);
+builder.Services.AddApplicationServices();
+builder.Services.AddInfrastructureServices(builder.Configuration);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddExceptionHandler<ApiExceptionHandler>();

@@ -1,8 +1,8 @@
 using HMRC_TAX_FLOW.Application.Authentication;
 using HMRC_TAX_FLOW.Application.Authentication.DTOs;
 using HMRC_TAX_FLOW.Domain.Users;
-using HMRC_TAX_FLOW.Infrastructure.Authentication;
-using HMRC_TAX_FLOW.Infrastructure.Repositories;
+using HMRC_TAX_FLOW.Application.Abstractions.Security;
+using HMRC_TAX_FLOW.Application.Abstractions.Persistence;
 using Microsoft.AspNetCore.Identity;
 using Xunit;
 
@@ -111,12 +111,9 @@ public sealed class AuthServiceTests
 
     private sealed class FakeJwtService : IJwtService
     {
-        public TokenResult GenerateToken(User user) =>
-            new()
-            {
-                Token = "test-token",
-                ExpiresAt = new DateTime(2030, 1, 1, 0, 5, 0, DateTimeKind.Utc)
-            };
+        public TokenResult GenerateToken(User user) => new(
+            "test-token",
+            new DateTime(2030, 1, 1, 0, 5, 0, DateTimeKind.Utc));
     }
 
     private sealed class FakeUserRepository : IUserRepository
@@ -124,15 +121,15 @@ public sealed class AuthServiceTests
         public List<User> Users { get; } = [];
         public bool ThrowDuplicateOnCreate { get; init; }
 
-        public Task CreateAsync(User user, CancellationToken cancellationToken = default)
+        public Task<bool> TryCreateAsync(User user, CancellationToken cancellationToken = default)
         {
             if (ThrowDuplicateOnCreate)
             {
-                throw new UsernameAlreadyExistsException();
+                return Task.FromResult(false);
             }
 
             Users.Add(user);
-            return Task.CompletedTask;
+            return Task.FromResult(true);
         }
 
         public Task<User?> GetByUsernameAsync(
