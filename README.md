@@ -217,19 +217,5 @@ LOGIN ↓ ROLE ↓ DASHBOARD ↓ SA100 / SA800 ↓ ENTER DATA ↓ CALCULATE ↓ 
 
 ```
 
-### Do NOT Build
-
-- Complete HMRC tax engine
-- Every SA100/SA800 field
-- HMRC live integration
-- Payment
-- PDF
-- Email
-- Notifications
-- Microservices
-- Redis
-- RabbitMQ
-- Complex frontend
-
-The goal is a **small 3–4 hour project** that teaches C#, ASP.NET Core, MongoDB, JWT, roles, Modular Monolith architecture, and the basic concepts of SA100 and SA800.
+ 
 ```
