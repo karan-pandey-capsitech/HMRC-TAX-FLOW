@@ -1,5 +1,5 @@
 ﻿using HMRC_TAX_FLOW.Domain.Users;
-using HMRC_TAX_FLOW.Infrastructure.Repositories;
+using HMRC_TAX_FLOW.Application.Abstractions.Persistence;
 
 namespace HMRC_TAX_FLOW.Application.Users;
 
@@ -26,13 +26,7 @@ public sealed class UserService : IUserService
         string role,
         CancellationToken cancellationToken = default)
     {
-        var normalizedRole = role?.Trim();
-        var allowedRole = normalizedRole is not null &&
-            (normalizedRole.Equals(UserRole.User, StringComparison.OrdinalIgnoreCase) ||
-             normalizedRole.Equals(UserRole.Practice, StringComparison.OrdinalIgnoreCase) ||
-             normalizedRole.Equals(UserRole.Debitam, StringComparison.OrdinalIgnoreCase));
-
-        if (!allowedRole)
+        if (!UserRole.TryNormalizeAssignable(role, out var normalizedRole))
         {
             throw new InvalidManagedUserRoleException();
         }
@@ -40,13 +34,7 @@ public sealed class UserService : IUserService
         var user = await _repository.GetByIdAsync(id, cancellationToken)
             ?? throw new ManagedUserNotFoundException();
 
-        var canonicalRole = normalizedRole!.Equals(UserRole.User, StringComparison.OrdinalIgnoreCase)
-            ? UserRole.User
-            : normalizedRole.Equals(UserRole.Practice, StringComparison.OrdinalIgnoreCase)
-                ? UserRole.Practice
-                : UserRole.Debitam;
-
-        user.Roles = [canonicalRole];
+        user.Roles = [normalizedRole];
         return await _repository.UpdateAsync(user, cancellationToken)
             ?? throw new ManagedUserNotFoundException();
     }

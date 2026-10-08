@@ -1,7 +1,7 @@
 ﻿using HMRC_TAX_FLOW.Application.Authentication.DTOs;
+using HMRC_TAX_FLOW.Application.Abstractions.Security;
+using HMRC_TAX_FLOW.Application.Abstractions.Persistence;
 using HMRC_TAX_FLOW.Domain.Users;
-using HMRC_TAX_FLOW.Infrastructure.Authentication;
-using HMRC_TAX_FLOW.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Identity;
 
 namespace HMRC_TAX_FLOW.Application.Authentication;
@@ -86,7 +86,11 @@ public sealed class AuthService : IAuthService
         user.PasswordHash = _passwordHasher.HashPassword(user, request.Password);
 
         // Registration is public, so the caller must not be allowed to choose a role.
-        await _repository.CreateAsync(user, cancellationToken);
+        if (!await _repository.TryCreateAsync(user, cancellationToken))
+        {
+            throw new UsernameAlreadyExistsException();
+        }
+
         return user;
     }
 }

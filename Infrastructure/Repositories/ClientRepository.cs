@@ -1,4 +1,5 @@
 using HMRC_TAX_FLOW.Domain.Clients;
+using HMRC_TAX_FLOW.Application.Abstractions.Persistence;
 using HMRC_TAX_FLOW.Infrastructure.MongoDB;
 using MongoDB.Driver;
 

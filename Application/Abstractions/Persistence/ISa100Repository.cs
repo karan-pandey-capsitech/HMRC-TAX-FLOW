@@ -1,10 +1,13 @@
 using HMRC_TAX_FLOW.Domain.SA100;
 
-namespace HMRC_TAX_FLOW.Infrastructure.Repositories;
+namespace HMRC_TAX_FLOW.Application.Abstractions.Persistence;
 
 public interface ISa100Repository
 {
-    Task CreateAsync(Sa100Return taxReturn, CancellationToken cancellationToken = default);
+    Task<bool> TryCreateAsync(
+        Sa100Return taxReturn,
+        CancellationToken cancellationToken = default);
+
     Task<Sa100Return?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<Sa100Return>> GetAllAsync(CancellationToken cancellationToken = default);
     Task<IReadOnlyList<Sa100Return>> GetByPracticeUserAsync(

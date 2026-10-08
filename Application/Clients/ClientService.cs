@@ -1,7 +1,7 @@
 using HMRC_TAX_FLOW.Application.Clients.DTOs;
+using HMRC_TAX_FLOW.Application.Abstractions.Persistence;
 using HMRC_TAX_FLOW.Domain.Clients;
 using HMRC_TAX_FLOW.Domain.Users;
-using HMRC_TAX_FLOW.Infrastructure.Repositories;
 
 namespace HMRC_TAX_FLOW.Application.Clients;
 

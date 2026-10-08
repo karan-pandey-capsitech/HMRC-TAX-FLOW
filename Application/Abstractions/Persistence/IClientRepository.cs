@@ -1,6 +1,6 @@
 using HMRC_TAX_FLOW.Domain.Clients;
 
-namespace HMRC_TAX_FLOW.Infrastructure.Repositories;
+namespace HMRC_TAX_FLOW.Application.Abstractions.Persistence;
 
 public interface IClientRepository
 {

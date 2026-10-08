@@ -1,5 +1,5 @@
-using HMRC_TAX_FLOW.Application.SA100;
 using HMRC_TAX_FLOW.Domain.SA100;
+using HMRC_TAX_FLOW.Application.Abstractions.Persistence;
 using HMRC_TAX_FLOW.Infrastructure.MongoDB;
 using MongoDB.Driver;
 
@@ -7,15 +7,16 @@ namespace HMRC_TAX_FLOW.Infrastructure.Repositories;
 
 public sealed class Sa100Repository(MongoDbContext context) : ISa100Repository
 {
-    public async Task CreateAsync(Sa100Return taxReturn, CancellationToken cancellationToken = default)
+    public async Task<bool> TryCreateAsync(Sa100Return taxReturn, CancellationToken cancellationToken = default)
     {
         try
         {
             await context.Sa100Returns.InsertOneAsync(taxReturn, cancellationToken: cancellationToken);
+            return true;
         }
         catch (MongoWriteException exception) when (exception.WriteError?.Code == 11000)
         {
-            throw new Sa100ConflictException();
+            return false;
         }
     }
 

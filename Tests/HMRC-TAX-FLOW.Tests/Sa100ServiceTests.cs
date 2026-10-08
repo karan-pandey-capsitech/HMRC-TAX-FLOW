@@ -2,7 +2,7 @@ using HMRC_TAX_FLOW.Application.SA100;
 using HMRC_TAX_FLOW.Application.SA100.DTOs;
 using HMRC_TAX_FLOW.Domain.Clients;
 using HMRC_TAX_FLOW.Domain.SA100;
-using HMRC_TAX_FLOW.Infrastructure.Repositories;
+using HMRC_TAX_FLOW.Application.Abstractions.Persistence;
 using Xunit;
 
 namespace HMRC_TAX_FLOW.Tests;
@@ -47,6 +47,26 @@ public sealed class Sa100ServiceTests
             service.CreateAsync(
                 new CreateSa100Request { ClientId = client.Id },
                 Guid.NewGuid()));
+    }
+
+    [Fact]
+    public async Task CreateAsync_ReportsDuplicateClientAndTaxYearClearly()
+    {
+        var client = new Client { PracticeUserId = Guid.NewGuid() };
+        var repository = new FakeSa100Repository();
+        repository.Returns.Add(new Sa100Return
+        {
+            ClientId = client.Id,
+            TaxYear = "2025-26"
+        });
+        var service = CreateService(client, repository);
+
+        var exception = await Assert.ThrowsAsync<Sa100AlreadyExistsException>(() =>
+            service.CreateAsync(
+                new CreateSa100Request { ClientId = client.Id, TaxYear = "2025-26" },
+                client.PracticeUserId));
+
+        Assert.Contains("already exists", exception.Message, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -113,10 +133,16 @@ public sealed class Sa100ServiceTests
     {
         public List<Sa100Return> Returns { get; } = [];
 
-        public Task CreateAsync(Sa100Return taxReturn, CancellationToken cancellationToken = default)
+        public Task<bool> TryCreateAsync(Sa100Return taxReturn, CancellationToken cancellationToken = default)
         {
+            if (Returns.Any(existing =>
+                    existing.ClientId == taxReturn.ClientId && existing.TaxYear == taxReturn.TaxYear))
+            {
+                return Task.FromResult(false);
+            }
+
             Returns.Add(taxReturn);
-            return Task.CompletedTask;
+            return Task.FromResult(true);
         }
 
         public Task<Sa100Return?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default) =>

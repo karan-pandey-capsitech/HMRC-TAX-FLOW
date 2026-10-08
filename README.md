@@ -10,9 +10,22 @@ educational project, not a real HMRC filing system.
 
 ## Run the current API locally
 
-Requirements: .NET 10 SDK and MongoDB. MongoDB defaults to
-`mongodb://localhost:27017` with database `HmrcTaxFlow`; override those
-settings through User Secrets or environment variables if needed.
+Requirements: .NET 10 SDK and a reachable MongoDB instance (MongoDB Atlas is
+supported). The database name defaults to `HmrcTaxFlow`. The connection string
+is intentionally not stored in `appsettings.json`; configure it in User
+Secrets for local development or with the `MongoDb__ConnectionString`
+environment variable in a deployed environment.
+
+From the project directory, set the connection string in User Secrets. Replace
+the placeholders with your MongoDB Atlas database user, password, and cluster
+host. Keep the database name in the URI and in `MongoDb:DatabaseName` aligned:
+
+```powershell
+dotnet user-secrets set "MongoDb:ConnectionString" "mongodb+srv://<db-user>:<db-password>@<cluster-host>/HmrcTaxFlow?retryWrites=true&w=majority&appName=HMRC-TAX-FLOW"
+```
+
+Atlas must allow connections from your current IP address, and the database
+user must have read/write access to `HmrcTaxFlow`.
 
 Configure a local JWT signing key in User Secrets. Do not put a real key in
 `appsettings.json` or commit it:
@@ -48,9 +61,12 @@ HTTPS profile).
 - `GET /api/health` — basic API health response.
 
 Send the login token to protected endpoints with
-`Authorization: Bearer <token>`. There is not yet an API for bootstrapping
-or managing administrator accounts; provision any initial admin account
-through a controlled administrative process.
+`Authorization: Bearer <token>`. Public registration creates only the
+standard `User` role. Once an Admin account has been provisioned through a
+controlled administrative process, an Admin can assign `User`, `Practice`, or
+`Debitam` with `POST /api/users/{id}/role`. There is no public or API operation
+for bootstrapping an initial Admin or assigning the Admin role. Users must log
+in again after a role change to receive a JWT containing the updated role.
 
 At startup, the API creates a unique MongoDB index on usernames. Existing
 databases must not contain duplicate usernames when this index is first

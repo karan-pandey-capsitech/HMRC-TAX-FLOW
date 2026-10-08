@@ -1,7 +1,7 @@
 using HMRC_TAX_FLOW.Application.SA100.DTOs;
 using HMRC_TAX_FLOW.Domain.Clients;
 using HMRC_TAX_FLOW.Domain.SA100;
-using HMRC_TAX_FLOW.Infrastructure.Repositories;
+using HMRC_TAX_FLOW.Application.Abstractions.Persistence;
 
 namespace HMRC_TAX_FLOW.Application.SA100;
 
@@ -65,7 +65,10 @@ public sealed class Sa100Service(
             UpdatedAt = now
         };
 
-        await sa100Repository.CreateAsync(taxReturn, cancellationToken);
+        if (!await sa100Repository.TryCreateAsync(taxReturn, cancellationToken))
+        {
+            throw new Sa100AlreadyExistsException();
+        }
         return ToResponse(taxReturn);
     }
 

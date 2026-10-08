@@ -7,3 +7,6 @@ public sealed class ClientNotFoundException() : Exception("The client was not fo
 public sealed class ClientAccessDeniedException() : Exception("The user cannot access this client or return.");
 
 public sealed class Sa100ConflictException() : Exception("The SA100 return is no longer an editable draft.");
+
+public sealed class Sa100AlreadyExistsException()
+    : Exception("An SA100 return already exists for this client and tax year.");
