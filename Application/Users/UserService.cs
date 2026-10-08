@@ -20,4 +20,34 @@ public sealed class UserService : IUserService
 
     public Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default) =>
         _repository.DeleteAsync(id, cancellationToken);
+
+    public async Task<User> AssignRoleAsync(
+        Guid id,
+        string role,
+        CancellationToken cancellationToken = default)
+    {
+        var normalizedRole = role?.Trim();
+        var allowedRole = normalizedRole is not null &&
+            (normalizedRole.Equals(UserRole.User, StringComparison.OrdinalIgnoreCase) ||
+             normalizedRole.Equals(UserRole.Practice, StringComparison.OrdinalIgnoreCase) ||
+             normalizedRole.Equals(UserRole.Debitam, StringComparison.OrdinalIgnoreCase));
+
+        if (!allowedRole)
+        {
+            throw new InvalidManagedUserRoleException();
+        }
+
+        var user = await _repository.GetByIdAsync(id, cancellationToken)
+            ?? throw new ManagedUserNotFoundException();
+
+        var canonicalRole = normalizedRole!.Equals(UserRole.User, StringComparison.OrdinalIgnoreCase)
+            ? UserRole.User
+            : normalizedRole.Equals(UserRole.Practice, StringComparison.OrdinalIgnoreCase)
+                ? UserRole.Practice
+                : UserRole.Debitam;
+
+        user.Roles = [canonicalRole];
+        return await _repository.UpdateAsync(user, cancellationToken)
+            ?? throw new ManagedUserNotFoundException();
+    }
 }

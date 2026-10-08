@@ -53,8 +53,8 @@ public sealed class Sa100Service(
             ClientId = client.Id,
             PracticeUserId = practiceUserId,
             TaxYear = request.TaxYear.Trim(),
-            ClientName = request.ClientName.Trim(),
-            NationalInsuranceNumber = request.NationalInsuranceNumber.Trim().ToUpperInvariant(),
+            ClientName = client.Name,
+            NationalInsuranceNumber = client.NationalInsuranceNumber.Trim().ToUpperInvariant(),
             EmploymentIncome = request.EmploymentIncome,
             SelfEmploymentIncome = request.SelfEmploymentIncome,
             OtherIncome = request.OtherIncome,
@@ -78,8 +78,6 @@ public sealed class Sa100Service(
         var taxReturn = await GetPracticeReturnAsync(id, practiceUserId, cancellationToken);
         EnsureDraft(taxReturn);
 
-        taxReturn.ClientName = request.ClientName.Trim();
-        taxReturn.NationalInsuranceNumber = request.NationalInsuranceNumber.Trim().ToUpperInvariant();
         taxReturn.EmploymentIncome = request.EmploymentIncome;
         taxReturn.SelfEmploymentIncome = request.SelfEmploymentIncome;
         taxReturn.OtherIncome = request.OtherIncome;
