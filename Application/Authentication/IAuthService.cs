@@ -1,12 +1,10 @@
-﻿using System.Threading.Tasks;
-using HMRC_TAX_FLOW.Application.Authentication.DTOs;
+﻿using HMRC_TAX_FLOW.Application.Authentication.DTOs;
 using HMRC_TAX_FLOW.Domain.Users;
 
-namespace HMRC_TAX_FLOW.Application.Authentication
+namespace HMRC_TAX_FLOW.Application.Authentication;
+
+public interface IAuthService
 {
-    public interface IAuthService
-    {
-        Task<LoginResponse> LoginAsync(LoginRequest request);
-        Task<User> RegisterAsync(RegisterRequest request);
-    }
+    Task<LoginResponse> LoginAsync(LoginRequest request, CancellationToken cancellationToken = default);
+    Task<User> RegisterAsync(RegisterRequest request, CancellationToken cancellationToken = default);
 }

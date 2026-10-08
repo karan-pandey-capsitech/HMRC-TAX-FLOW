@@ -1,57 +1,92 @@
-﻿using System;
-using System.Threading.Tasks;
-using HMRC_TAX_FLOW.Application.Authentication.DTOs;
+﻿using HMRC_TAX_FLOW.Application.Authentication.DTOs;
 using HMRC_TAX_FLOW.Domain.Users;
-using HMRC_TAX_FLOW.Infrastructure.Repositories;
 using HMRC_TAX_FLOW.Infrastructure.Authentication;
+using HMRC_TAX_FLOW.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Identity;
 
-namespace HMRC_TAX_FLOW.Application.Authentication
+namespace HMRC_TAX_FLOW.Application.Authentication;
+
+public sealed class AuthService : IAuthService
 {
-    public class AuthService : IAuthService
+    private readonly IUserRepository _repository;
+    private readonly IJwtService _jwtService;
+    private readonly IPasswordHasher<User> _passwordHasher;
+
+    public AuthService(
+        IUserRepository repository,
+        IJwtService jwtService,
+        IPasswordHasher<User> passwordHasher)
     {
-        private readonly IUserRepository _repo;
-        private readonly IJwtService _jwt;
-        private readonly IPasswordHasher<User> _hasher;
+        _repository = repository;
+        _jwtService = jwtService;
+        _passwordHasher = passwordHasher;
+    }
 
-        public AuthService(IUserRepository repo, IJwtService jwt, IPasswordHasher<User> hasher)
+    public async Task<LoginResponse> LoginAsync(
+        LoginRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+
+        var username = request.Username.Trim();
+        var user = await _repository.GetByUsernameAsync(username, cancellationToken);
+        if (user is null)
         {
-            _repo = repo ?? throw new ArgumentNullException(nameof(repo));
-            _jwt = jwt ?? throw new ArgumentNullException(nameof(jwt));
-            _hasher = hasher ?? throw new ArgumentNullException(nameof(hasher));
+            throw new InvalidCredentialsException();
         }
 
-        public async Task<LoginResponse> LoginAsync(LoginRequest request)
+        var verificationResult = _passwordHasher.VerifyHashedPassword(
+            user,
+            user.PasswordHash,
+            request.Password);
+
+        if (verificationResult == PasswordVerificationResult.Failed)
         {
-            if (request == null) throw new ArgumentNullException(nameof(request));
-            var user = await _repo.GetByUsernameAsync(request.Username);
-            if (user == null) throw new InvalidOperationException("Invalid credentials.");
-
-            var verify = _hasher.VerifyHashedPassword(user, user.PasswordHash, request.Password);
-            if (verify == PasswordVerificationResult.Failed) throw new InvalidOperationException("Invalid credentials.");
-
-            var token = _jwt.GenerateToken(user);
-            return new LoginResponse { Token = token.Token, ExpiresAt = token.ExpiresAt };
+            throw new InvalidCredentialsException();
         }
 
-        public async Task<User> RegisterAsync(RegisterRequest request)
+        if (verificationResult == PasswordVerificationResult.SuccessRehashNeeded)
         {
-            if (request == null) throw new ArgumentNullException(nameof(request));
-            var existing = await _repo.GetByUsernameAsync(request.Username);
-            if (existing != null) throw new InvalidOperationException("Username already exists.");
-
-            var user = new User
+            user.PasswordHash = _passwordHasher.HashPassword(user, request.Password);
+            if (await _repository.UpdateAsync(user, cancellationToken) is null)
             {
-                Username = request.Username,
-                Email = request.Email,
-                FullName = request.FullName
-            };
-
-            user.PasswordHash = _hasher.HashPassword(user, request.Password);
-            if (!string.IsNullOrWhiteSpace(request.Role)) user.Roles = new System.Collections.Generic.List<string> { request.Role! };
-
-            await _repo.CreateAsync(user);
-            return user;
+                throw new InvalidCredentialsException();
+            }
         }
+
+        var token = _jwtService.GenerateToken(user);
+        return new LoginResponse
+        {
+            Token = token.Token,
+            ExpiresAt = token.ExpiresAt
+        };
+    }
+
+    public async Task<User> RegisterAsync(
+        RegisterRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+
+        var username = request.Username.Trim();
+        if (await _repository.GetByUsernameAsync(username, cancellationToken) is not null)
+        {
+            throw new UsernameAlreadyExistsException();
+        }
+
+        var user = new User
+        {
+            Username = username,
+            Email = request.Email.Trim(),
+            FullName = string.IsNullOrWhiteSpace(request.FullName)
+                ? null
+                : request.FullName.Trim()
+        };
+
+        user.PasswordHash = _passwordHasher.HashPassword(user, request.Password);
+
+        // Registration is public, so the caller must not be allowed to choose a role.
+        await _repository.CreateAsync(user, cancellationToken);
+        return user;
     }
 }

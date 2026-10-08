@@ -16,14 +16,20 @@ namespace HMRC_TAX_FLOW.Extensions
     {
         public static IServiceCollection AddAuthServices(this IServiceCollection services, IConfiguration configuration)
         {
-            // Configure MongoDB BSON to handle Guid serialization
             BsonSerializer.RegisterSerializer(new MongoDB.Bson.Serialization.Serializers.GuidSerializer(GuidRepresentation.Standard));
 
-            // MongoDB settings
-            services.Configure<MongoDbSettings>(configuration.GetSection("MongoDb"));
+            services.AddOptions<MongoDbSettings>()
+                .Bind(configuration.GetSection("MongoDb"))
+                .Validate(
+                    settings => !string.IsNullOrWhiteSpace(settings.ConnectionString),
+                    "MongoDb:ConnectionString must be configured.")
+                .Validate(
+                    settings => !string.IsNullOrWhiteSpace(settings.DatabaseName),
+                    "MongoDb:DatabaseName must be configured.")
+                .ValidateOnStart();
+
             services.AddSingleton<MongoDbContext>();
 
-            // Repositories & Services
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IUserService, UserService>();
