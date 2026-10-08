@@ -1,48 +1,57 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using HMRC_TAX_FLOW.Application.Authentication;
 using HMRC_TAX_FLOW.Domain.Users;
 using HMRC_TAX_FLOW.Infrastructure.MongoDB;
 using MongoDB.Driver;
 
-namespace HMRC_TAX_FLOW.Infrastructure.Repositories
+namespace HMRC_TAX_FLOW.Infrastructure.Repositories;
+
+public sealed class UserRepository : IUserRepository
 {
-    public class UserRepository : IUserRepository
+    private readonly MongoDbContext _context;
+
+    public UserRepository(MongoDbContext context) => _context = context;
+
+    public async Task CreateAsync(User user, CancellationToken cancellationToken = default)
     {
-        private readonly MongoDbContext _context;
-
-        public UserRepository(MongoDbContext context)
+        try
         {
-            _context = context;
+            await _context.Users.InsertOneAsync(user, cancellationToken: cancellationToken);
         }
-
-        public async Task CreateAsync(User user)
+        catch (MongoWriteException exception) when (exception.WriteError?.Code == 11000)
         {
-            await _context.Users.InsertOneAsync(user);
+            throw new UsernameAlreadyExistsException();
         }
+    }
 
-        public async Task<User?> GetByUsernameAsync(string username)
-        {
-            var filter = Builders<User>.Filter.Eq(u => u.Username, username);
-            return await _context.Users.Find(filter).FirstOrDefaultAsync();
-        }
+    public async Task<User?> GetByUsernameAsync(
+        string username,
+        CancellationToken cancellationToken = default)
+    {
+        var filter = Builders<User>.Filter.Eq(user => user.Username, username);
+        return await _context.Users.Find(filter).FirstOrDefaultAsync(cancellationToken);
+    }
 
-        public async Task<User?> GetByIdAsync(Guid id)
-        {
-            var filter = Builders<User>.Filter.Eq(u => u.Id, id);
-            return await _context.Users.Find(filter).FirstOrDefaultAsync();
-        }
+    public async Task<User?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var filter = Builders<User>.Filter.Eq(user => user.Id, id);
+        return await _context.Users.Find(filter).FirstOrDefaultAsync(cancellationToken);
+    }
 
-        public async Task<User> UpdateAsync(User user)
+    public async Task<User?> UpdateAsync(User user, CancellationToken cancellationToken = default)
+    {
+        var filter = Builders<User>.Filter.Eq(existing => existing.Id, user.Id);
+        var options = new FindOneAndReplaceOptions<User>
         {
-            var filter = Builders<User>.Filter.Eq(u => u.Id, user.Id);
-            var options = new FindOneAndReplaceOptions<User> { ReturnDocument = ReturnDocument.After };
-            return await _context.Users.FindOneAndReplaceAsync(filter, user, options);
-        }
+            ReturnDocument = ReturnDocument.After
+        };
 
-        public async Task DeleteAsync(Guid id)
-        {
-            var filter = Builders<User>.Filter.Eq(u => u.Id, id);
-            await _context.Users.DeleteOneAsync(filter);
-        }
+        return await _context.Users.FindOneAndReplaceAsync(filter, user, options, cancellationToken);
+    }
+
+    public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var filter = Builders<User>.Filter.Eq(user => user.Id, id);
+        var result = await _context.Users.DeleteOneAsync(filter, cancellationToken);
+        return result.DeletedCount == 1;
     }
 }

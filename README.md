@@ -1,6 +1,62 @@
   
 # HMRC Tax Return Management System
 
+## Current implementation status
+
+The current codebase is an early API foundation. Implemented endpoints cover
+user registration, login, JWT-protected profile operations, and a health
+check. The SA100 and SA800 tax-return endpoints and calculations described
+below are planned features; they are not implemented yet. This is an
+educational project, not a real HMRC filing system.
+
+## Run the current API locally
+
+Requirements: .NET 10 SDK and MongoDB. MongoDB defaults to
+`mongodb://localhost:27017` with database `HmrcTaxFlow`; override those
+settings through User Secrets or environment variables if needed.
+
+Configure a local JWT signing key in User Secrets. Do not put a real key in
+`appsettings.json` or commit it:
+
+```powershell
+$bytes = New-Object byte[] 48
+$rng = [System.Security.Cryptography.RandomNumberGenerator]::Create()
+$rng.GetBytes($bytes)
+$key = [Convert]::ToBase64String($bytes)
+dotnet user-secrets set "Jwt:Key" $key
+$rng.Dispose()
+```
+
+Then start the application:
+
+```powershell
+dotnet run
+```
+
+With the Development launch profile, Swagger is available at
+`http://localhost:5021/swagger` (or `https://localhost:7229/swagger` with the
+HTTPS profile).
+
+### Implemented authentication endpoints
+
+- `POST /api/auth/register` — creates a standard `User` account. Public
+  registration cannot select privileged roles.
+- `POST /api/auth/login` — validates credentials and returns a JWT.
+- `GET /api/auth/profile` — returns the authenticated user's profile.
+- `POST /api/auth/profile/update` — updates the authenticated user's email
+  and/or full name.
+- `POST /api/auth/profile/delete` — deletes the authenticated user's account.
+- `GET /api/health` — basic API health response.
+
+Send the login token to protected endpoints with
+`Authorization: Bearer <token>`. There is not yet an API for bootstrapping
+or managing administrator accounts; provision any initial admin account
+through a controlled administrative process.
+
+At startup, the API creates a unique MongoDB index on usernames. Existing
+databases must not contain duplicate usernames when this index is first
+created.
+
 ## 1. Project Goal
 Build a small ASP.NET Core Web API + MongoDB application for managing simplified HMRC tax returns.
 

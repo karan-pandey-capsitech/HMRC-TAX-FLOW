@@ -11,9 +11,9 @@ namespace HMRC_TAX_FLOW.Controllers
         {
             return Ok(new
             {
-                status = "API is running successfully!",
+                status = "API is running successfully.",
                 timestamp = DateTime.UtcNow,
-                version = "1.0.0",
+                version = "1.1.0",
                 message = "HMRC-TAX-FLOW Authentication API"
             });
         }

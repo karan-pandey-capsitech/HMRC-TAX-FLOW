@@ -1,8 +1,7 @@
-﻿namespace HMRC_TAX_FLOW.Infrastructure.MongoDB
+﻿namespace HMRC_TAX_FLOW.Infrastructure.MongoDB;
+
+public sealed class MongoDbSettings
 {
-    public class MongoDbSettings
-    {
-        public string ConnectionString { get; set; } = default!;
-        public string DatabaseName { get; set; } = default!;
-    }
+    public string ConnectionString { get; set; } = string.Empty;
+    public string DatabaseName { get; set; } = string.Empty;
 }

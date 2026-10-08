@@ -1,18 +1,23 @@
-﻿using System;
-using System.Threading.Tasks;
-using HMRC_TAX_FLOW.Domain.Users;
+﻿using HMRC_TAX_FLOW.Domain.Users;
 using HMRC_TAX_FLOW.Infrastructure.Repositories;
 
-namespace HMRC_TAX_FLOW.Application.Users
-{
-    public class UserService : IUserService
-    {
-        private readonly IUserRepository _repo;
-        public UserService(IUserRepository repo) => _repo = repo;
+namespace HMRC_TAX_FLOW.Application.Users;
 
-        public Task<User?> GetByIdAsync(Guid id) => _repo.GetByIdAsync(id);
-        public Task<User?> GetByUsernameAsync(string username) => _repo.GetByUsernameAsync(username);
-        public Task<User> UpdateAsync(User user) => _repo.UpdateAsync(user);
-        public Task DeleteAsync(Guid id) => _repo.DeleteAsync(id);
-    }
+public sealed class UserService : IUserService
+{
+    private readonly IUserRepository _repository;
+
+    public UserService(IUserRepository repository) => _repository = repository;
+
+    public Task<User?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default) =>
+        _repository.GetByIdAsync(id, cancellationToken);
+
+    public Task<User?> GetByUsernameAsync(string username, CancellationToken cancellationToken = default) =>
+        _repository.GetByUsernameAsync(username, cancellationToken);
+
+    public Task<User?> UpdateAsync(User user, CancellationToken cancellationToken = default) =>
+        _repository.UpdateAsync(user, cancellationToken);
+
+    public Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default) =>
+        _repository.DeleteAsync(id, cancellationToken);
 }
