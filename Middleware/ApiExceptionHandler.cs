@@ -1,4 +1,6 @@
 using HMRC_TAX_FLOW.Application.Authentication;
+using HMRC_TAX_FLOW.Application.Clients;
+using HMRC_TAX_FLOW.Application.SA100;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 
@@ -33,6 +35,22 @@ public sealed class ApiExceptionHandler(
                 StatusCodes.Status409Conflict,
                 "Username already exists",
                 "Choose a different username."),
+            Sa100NotFoundException or ClientNotFoundException => (
+                StatusCodes.Status404NotFound,
+                "Resource not found",
+                exception.Message),
+            ClientAccessDeniedException => (
+                StatusCodes.Status403Forbidden,
+                "Access denied",
+                exception.Message),
+            Sa100ConflictException => (
+                StatusCodes.Status409Conflict,
+                "SA100 workflow conflict",
+                exception.Message),
+            InvalidClientAssignmentException => (
+                StatusCodes.Status400BadRequest,
+                "Invalid client assignment",
+                exception.Message),
             _ => (
                 StatusCodes.Status500InternalServerError,
                 "An unexpected error occurred",

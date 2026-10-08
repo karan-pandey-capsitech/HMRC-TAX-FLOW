@@ -3,10 +3,9 @@
 
 ## Current implementation status
 
-The current codebase is an early API foundation. Implemented endpoints cover
-user registration, login, JWT-protected profile operations, and a health
-check. The SA100 and SA800 tax-return endpoints and calculations described
-below are planned features; they are not implemented yet. This is an
+The API includes registration, login, JWT-protected profile operations, a
+health check, and an initial SA100 draft/submission workflow with client
+assignment and dashboard summaries. SA800 remains planned. This is an
 educational project, not a real HMRC filing system.
 
 ## Run the current API locally
@@ -56,6 +55,26 @@ through a controlled administrative process.
 At startup, the API creates a unique MongoDB index on usernames. Existing
 databases must not contain duplicate usernames when this index is first
 created.
+
+### SA100 and dashboard endpoints
+
+- `GET /api/clients` — lists clients visible to the signed-in user.
+- `POST /api/clients` — Admin creates a client and assigns a Practice user and
+  optional Debitam user. Those users must already have the corresponding role.
+- `GET /api/sa100` and `GET /api/sa100/{id}` — Admin sees all returns; Practice
+  sees returns for their assigned clients.
+- `POST /api/sa100` — Practice creates a draft for an assigned client.
+- `POST /api/sa100/{id}` — Practice updates an owned draft.
+- `POST /api/sa100/{id}/submit` — Practice submits an owned draft. Submitted
+  returns cannot be edited or submitted again.
+- `GET /api/dashboard` — Admin sees system-wide SA100 counts; Practice sees
+  counts for their own returns.
+
+The SA100 tax-year input uses `YYYY-YY` (for example, `2025-26`). Monetary
+amounts must be non-negative. Estimated Tax is stored as entered; no tax
+calculation formula is defined by this educational project. Role assignment
+and initial Admin provisioning remain controlled administrative operations;
+public registration cannot assign privileged roles.
 
 ## 1. Project Goal
 Build a small ASP.NET Core Web API + MongoDB application for managing simplified HMRC tax returns.
