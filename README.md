@@ -10,22 +10,23 @@ educational project, not a real HMRC filing system.
 
 ## Run the current API locally
 
-Requirements: .NET 10 SDK and a reachable MongoDB instance (MongoDB Atlas is
-supported). The database name defaults to `HmrcTaxFlow`. The connection string
-is intentionally not stored in `appsettings.json`; configure it in User
-Secrets for local development or with the `MongoDb__ConnectionString`
-environment variable in a deployed environment.
+Requirements: .NET 10 SDK and MongoDB running locally on
+`mongodb://localhost:27017`. The default database name is `HmrcTaxFlow`; the
+application creates it when needed. Start the local MongoDB service before
+starting the API. The connection string can be overridden with the
+`MongoDb__ConnectionString` environment variable or a User Secret when using
+another MongoDB instance.
 
-From the project directory, set the connection string in User Secrets. Replace
-the placeholders with your MongoDB Atlas database user, password, and cluster
-host. Keep the database name in the URI and in `MongoDb:DatabaseName` aligned:
+For example, to use MongoDB Atlas instead of the local server, set its
+connection string in User Secrets (replace the placeholders and URL-encode
+special characters in the password):
 
 ```powershell
-dotnet user-secrets set "MongoDb:ConnectionString" "mongodb+srv://<db-user>:<db-password>@<cluster-host>/HmrcTaxFlow?retryWrites=true&w=majority&appName=HMRC-TAX-FLOW"
+dotnet user-secrets set "MongoDb:ConnectionString" "mongodb+srv://<db-user>:<encoded-password>@<cluster-host>/HmrcTaxFlow?retryWrites=true&w=majority&appName=HMRC-TAX-FLOW"
 ```
 
-Atlas must allow connections from your current IP address, and the database
-user must have read/write access to `HmrcTaxFlow`.
+The Atlas database user needs read/write access to `HmrcTaxFlow`, and Atlas
+must allow connections from the machine running the API.
 
 Configure a local JWT signing key in User Secrets. Do not put a real key in
 `appsettings.json` or commit it:
