@@ -23,7 +23,6 @@ public sealed class RequestValidationTests
         Assert.Contains(validationResults, result => result.MemberNames.Contains(nameof(RegisterRequest.Email)));
         Assert.Contains(validationResults, result => result.MemberNames.Contains(nameof(RegisterRequest.Password)));
     }
-
     [Fact]
     public void UpdateProfileRequest_AllowsOmittedFields()
     {
