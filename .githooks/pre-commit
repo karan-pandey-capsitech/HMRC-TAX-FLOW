@@ -1,0 +1,9 @@
+#!/bin/sh
+set -eu
+
+echo "Checking .NET formatting..."
+dotnet format HMRC-TAX-FLOW.csproj --verify-no-changes
+dotnet format Tests/HMRC-TAX-FLOW.Tests/HMRC-TAX-FLOW.Tests.csproj --verify-no-changes
+
+echo "Running .NET tests..."
+dotnet test Tests/HMRC-TAX-FLOW.Tests/HMRC-TAX-FLOW.Tests.csproj --configuration Release
